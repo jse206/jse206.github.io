@@ -23,8 +23,8 @@
 // ⚠️ Sustituye estos valores por tu API Key y Token reales.
 // En producción usa variables de entorno o un backend propio para no
 // exponer el token en el cliente.
-const TRELLO_API_KEY = 'TU_API_KEY_AQUI';
-const TRELLO_TOKEN   = 'TU_TOKEN_AQUI';
+const TRELLO_API_KEY = '03a2b1de0e641dee65178641506f0d9b';
+const TRELLO_TOKEN   = 'ATTA3afd7b6c676770c942050f2d88c1e7ad55816e2512449a081e4ffb976242d15cCC6A269B';
 const TRELLO_API_BASE = 'https://api.trello.com/1';
 
 /* ── HELPERS DE API ────────────────────────────────────────────────────────── */
