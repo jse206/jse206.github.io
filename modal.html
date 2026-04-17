@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Configurar reglas</title>
+  <!--
+    modal.html (v2)
+    ===============
+    Correcciones respecto a v1:
+      - t.board('lists') → t.lists('id,name') que es la firma correcta del SDK
+      - Añadido t.sizeTo(document.body) en lugar de t.sizeTo('#root') que no existe
+      - Eliminado t.render() innecesario
+  -->
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://p.trellocdn.com/power-up.min.js"></script>
+</head>
+<body>
+  <div class="pu-modal" id="root">
+    <h2 class="pu-title">⚙️ Configurar reglas del botón</h2>
+    <p class="pu-subtitle">
+      Define qué ocurre cuando se pulse <strong>"Aplicar reglas"</strong> en esta tarjeta.
+    </p>
+
+    <!-- ── SECCIÓN: Etiquetas ─────────────────────────────────────── -->
+    <section class="pu-section">
+      <h3>Etiquetas</h3>
+
+      <label class="pu-label" for="labelsAdd">
+        Añadir etiquetas <span class="pu-hint">(IDs separados por coma)</span>
+      </label>
+      <input id="labelsAdd" class="pu-input" type="text"
+             placeholder="p. ej. 63a1f2c8…, 63a1f3d4…" />
+
+      <label class="pu-label" for="labelsRemove">
+        Quitar etiquetas <span class="pu-hint">(IDs separados por coma)</span>
+      </label>
+      <input id="labelsRemove" class="pu-input" type="text"
+             placeholder="p. ej. 63a1f4e5…" />
+    </section>
+
+    <!-- ── SECCIÓN: Mover tarjeta ─────────────────────────────────── -->
+    <section class="pu-section">
+      <h3>Mover tarjeta</h3>
+
+      <label class="pu-label" for="targetList">Lista de destino</label>
+      <select id="targetList" class="pu-input">
+        <option value="">— Sin movimiento —</option>
+      </select>
+    </section>
+
+    <!-- ── SECCIÓN: Condición ─────────────────────────────────────── -->
+    <section class="pu-section">
+      <h3>Condición (opcional)</h3>
+      <p class="pu-hint">
+        Las reglas solo se ejecutan si la tarjeta ya tiene esta etiqueta.
+        Déjalo vacío para ejecutar siempre.
+      </p>
+      <label class="pu-label" for="condLabel">ID de etiqueta requerida</label>
+      <input id="condLabel" class="pu-input" type="text"
+             placeholder="ID de etiqueta (opcional)" />
+    </section>
+
+    <!-- ── ACCIONES ───────────────────────────────────────────────── -->
+    <div class="pu-actions">
+      <button id="btnSave" class="pu-btn pu-btn-primary">Guardar reglas</button>
+      <button id="btnCancel" class="pu-btn pu-btn-secondary">Cancelar</button>
+    </div>
+
+    <p id="pu-status" class="pu-status"></p>
+  </div>
+
+  <script>
+    var t = TrelloPowerUp.iframe();
+
+    // ── Cargar listas del tablero ─────────────────────────────────────────────
+    // Firma correcta: t.lists(fields...) devuelve una Promise con un array de listas
+    t.lists('id', 'name').then(function (lists) {
+      var select = document.getElementById('targetList');
+      lists.forEach(function (list) {
+        var opt = document.createElement('option');
+        opt.value       = list.id;
+        opt.textContent = list.name;
+        select.appendChild(opt);
+      });
+
+      // Ajustar tamaño del popup después de rellenar el select
+      t.sizeTo(document.getElementById('root')).catch(function () {});
+    });
+
+    // ── Cargar configuración guardada ─────────────────────────────────────────
+    t.get('card', 'shared', 'smartButtonRules', null).then(function (rules) {
+      if (!rules) return;
+      document.getElementById('labelsAdd').value    = (rules.labelsAdd    || []).join(', ');
+      document.getElementById('labelsRemove').value = (rules.labelsRemove || []).join(', ');
+      document.getElementById('targetList').value   = rules.targetList    || '';
+      document.getElementById('condLabel').value    = rules.condLabel     || '';
+    });
+
+    // ── Guardar ───────────────────────────────────────────────────────────────
+    document.getElementById('btnSave').addEventListener('click', function () {
+      var status = document.getElementById('pu-status');
+
+      var labelsAdd = document.getElementById('labelsAdd').value
+        .split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+      var labelsRemove = document.getElementById('labelsRemove').value
+        .split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+      var targetList = document.getElementById('targetList').value;
+      var condLabel  = document.getElementById('condLabel').value.trim();
+
+      var rules = { labelsAdd: labelsAdd, labelsRemove: labelsRemove,
+                    targetList: targetList, condLabel: condLabel };
+
+      t.set('card', 'shared', 'smartButtonRules', rules)
+        .then(function () {
+          status.textContent = '✅ Reglas guardadas.';
+          status.style.color = '#00875A';
+          setTimeout(function () { t.closePopup(); }, 900);
+        })
+        .catch(function (err) {
+          status.textContent = '❌ Error: ' + err.message;
+          status.style.color = '#DE350B';
+        });
+    });
+
+    // ── Cancelar ─────────────────────────────────────────────────────────────
+    document.getElementById('btnCancel').addEventListener('click', function () {
+      t.closePopup();
+    });
+  </script>
+</body>
+</html>
